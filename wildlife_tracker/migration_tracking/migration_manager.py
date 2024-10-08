@@ -1,7 +1,7 @@
 from typing import Optional
 
-from wildlife_tracker.migration_managment.migration import Migration
-from wildlife_tracker.migration_management.MigrationPath import MigrationPath #what name should we choose migration_path???????
+from wildlife_tracker.migration import Migration
+from wildlife_tracker.migration_path import MigrationPath
 
 class MigrationManager:
     def __init__(self) -> None:

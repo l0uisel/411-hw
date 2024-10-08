@@ -1,12 +1,10 @@
 from typing import Optional
 
 from wildlife_tracker.migration_managment.migration import Migration
-from wildlife_tracker.migration_management.MigrationPath import MigrationPath
+from wildlife_tracker.migration_management.migration_path import MigrationPath
 from wildlife_tracker.habitat_management.habitat import Habitat
 
 class MigrationPath:
-
-#migration_path_id: int
 
     def __init__(self,
                 path_id: int,
@@ -15,9 +13,10 @@ class MigrationPath:
                 species: str,
                 duration: Optional[int] = None) -> None:
         self.path_id = path_id
-        self.start_location = Habitat
-        self.destination = Habitat
+        self.start_location: Habitat = start_location
+        self.destination: Habitat = destination
         self.species = species
+        self.duration = duration or []
 
 def get_migration_path_details(path_id) -> dict:
     pass
