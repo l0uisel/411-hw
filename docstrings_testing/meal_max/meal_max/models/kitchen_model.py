@@ -27,6 +27,21 @@ class Meal:
 
 
 def create_meal(meal: str, cuisine: str, price: float, difficulty: str) -> None:
+            """Creating an entry for our meal table.
+
+    Args:
+        meal (str): The meal entry name.
+        cusine (str): The cuisine type.
+        price (float): The cost of meal (postive number)
+        difficulty (str): Difficulty level of the meal - low, med, high/
+
+    Raises:
+        ValueError: If price is a non-positive value or difficulty level is invalid.
+        sqlite3.IntegrityError: If there already exists a meal of the same name.
+        sqlite3.Error: Other database errors.
+
+    """
+
     if not isinstance(price, (int, float)) or price <= 0:
         raise ValueError(f"Invalid price: {price}. Price must be a positive number.")
     if difficulty not in ['LOW', 'MED', 'HIGH']:
