@@ -27,13 +27,13 @@ class Meal:
 
 
 def create_meal(meal: str, cuisine: str, price: float, difficulty: str) -> None:
-            """Creating an entry for our meal table.
+    """Creating an entry for our meal table.
 
     Args:
         meal (str): The meal entry name.
         cusine (str): The cuisine type.
-        price (float): The cost of meal (postive number)
-        difficulty (str): Difficulty level of the meal - low, med, high/
+        price (float): The cost of meal (postive number).
+        difficulty (str): Difficulty level of the meal - low, med or high.
 
     Raises:
         ValueError: If price is a non-positive value or difficulty level is invalid.
@@ -66,8 +66,18 @@ def create_meal(meal: str, cuisine: str, price: float, difficulty: str) -> None:
         logger.error("Database error: %s", str(e))
         raise e
 
-
 def delete_meal(meal_id: int) -> None:
+    """Meal is deleted from the table.
+
+    Args:
+        meal_id (int): Unique identification for meal we want to delete.
+
+    Raises:
+        ValueError: If meal is not found in table (non-existent/already deleted).
+        sqlite3.Error: Other database errors.
+
+    """
+            
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -91,6 +101,17 @@ def delete_meal(meal_id: int) -> None:
         raise e
 
 def get_leaderboard(sort_by: str="wins") -> dict[str, Any]:
+    """Get meal leaderboard ranked on wins.
+
+    Args:
+        sort_by (str): Sort by "wins_pct" and "wins".
+
+    Raises:
+        ValueError: If it is an invalid sort by parameter.
+        sqlite3.Error: Other database errors.
+
+    """
+            
     query = """
         SELECT id, meal, cuisine, price, difficulty, battles, wins, (wins * 1.0 / battles) AS win_pct
         FROM meals WHERE deleted = false AND battles > 0
@@ -132,6 +153,19 @@ def get_leaderboard(sort_by: str="wins") -> dict[str, Any]:
         raise e
 
 def get_meal_by_id(meal_id: int) -> Meal:
+    """Get meal by its identification.
+
+    Args:
+        meal_id (int): Unique identification of meal.
+
+    Raises:
+        ValueError: If the meal id has been deleted/not found.
+        sqlite3.Error: Other database errors.
+    
+    Returns:
+        Meal: A Meal instance with the meal id.
+    """
+
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -151,8 +185,20 @@ def get_meal_by_id(meal_id: int) -> Meal:
         logger.error("Database error: %s", str(e))
         raise e
 
-
 def get_meal_by_name(meal_name: str) -> Meal:
+    """Get meal by its name.
+
+    Args:
+        meal_name (str): Name of meal.
+
+    Raises:
+        ValueError: If the meal name has been deleted/not found.
+        sqlite3.Error: Other database errors.
+    
+    Returns:
+        Meal: A Meal instance with the meal name.
+    """
+
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -172,8 +218,17 @@ def get_meal_by_name(meal_name: str) -> Meal:
         logger.error("Database error: %s", str(e))
         raise e
 
-
 def update_meal_stats(meal_id: int, result: str) -> None:
+    """Updates battle statistics for a meal.
+
+    Args:
+        meal_id (int): Unique identification of meal.
+        result (str): Result of the battle - win or loss
+
+    Raises:
+        ValueError: If the meal has been deleted/not found/invalid result.
+        sqlite3.Error: Other database errors.
+    """
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
