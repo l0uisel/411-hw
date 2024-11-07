@@ -56,10 +56,10 @@ def test_add_ingredient(mock_cursor):
     """Test adding ingredients to storage."""
 
     # Call the function to create a new ingredient
-    add_ingredient(type="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=800, Unit="grams")
+    add_ingredient(ingredtype="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=800, Unit="grams")
 
     expected_query = normalize_whitespace("""
-        INSERT INTO ingredients (type, name, expires, quantity, unit)
+        INSERT INTO ingredients (ingredtype, name, expires, quantity, unit)
         VALUES (?, ?, ?, ?, ?)
     """)
 
@@ -83,18 +83,18 @@ def test_add_ingredient_duplicate(mock_cursor):
 
     # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
     with pytest.raises(ValueError, match="Ingredient 'Cabbage' already exists."):
-        add_ingredient(type="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=800, Unit="grams")
+        add_ingredient(ingredtype="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=800, Unit="grams")
 
 def test_add_ingredient_invalid_quantity():
     """Test error when trying to add an ingredient with an invalid quantity (e.g., negative quantity)"""
 
     # Attempt to add an ingredient with a negative quantity
     with pytest.raises(ValueError, match="Invalid ingredient quantity: -800 \(must be a positive integer\)."):
-        add_ingredient(type="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=-800, Unit="grams")
+        add_ingredient(ingredtype="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=-800, Unit="grams")
 
     # Attempt to add an ingredient with a non-integer quantity
     with pytest.raises(ValueError, match="Invalid ingredient quantity: -800 \(must be a positive integer\)."):
-        add_ingredient(type="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=-800, Unit="grams")
+        add_ingredient(ingredtype="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=-800, Unit="grams")
 
 def test_delete_ingredient(mock_cursor):
     """Test deleting an ingredient from the kitchen by ingredient ID."""
@@ -156,19 +156,19 @@ def test_delete_ingredient_already_deleted(mock_cursor):
 def test_get_ingredient_by_id(mock_cursor):
     """Test retrieving an ingredient by ID."""
     # Simulate that the ingredient exists (id = 1)
-    mock_cursor.fetchone.return_value = (type="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=800, Unit="grams")
+    mock_cursor.fetchone.return_value = (1, ingredtype="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=800, Unit="grams")
 
     # Call the function and check the result
     result = get_ingredient_by_id(1)
 
     # Expected result based on the simulated fetchone return value
-    expected_result = Ingredient(type="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=800, Unit="grams")
+    expected_result = Ingredient(1, ingredtype="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=800, Unit="grams")
 
     # Ensure the result matches the expected output
     assert result == expected_result, f"Expected {expected_result}, got {result}"
 
     # Ensure the SQL query was executed correctly
-    expected_query = normalize_whitespace("SELECT id, type, name, expires, quantity, unit FROM ingredients WHERE id = ?")
+    expected_query = normalize_whitespace("SELECT id, ingredtype, name, expires, quantity, unit FROM ingredients WHERE id = ?")
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
 
     # Assert that the SQL query was correct
@@ -205,15 +205,15 @@ def test_get_all_ingredients(mock_cursor):
 
     # Ensure the results match the expected output
     expected_result = [
-        {"id": 1, "type": "Powder", "name": "Flour", "expires": "11/11/2024", "quantity": 10,  "unit": "kg"},
-        {"id": 2, "type": "Dairy", "name": "Milk", "expires": "11/11/2024", "quantity": 20,  "unit": "liters"},
-        {"id": 1, "type": "Dairy", "name": "Butter", "expires": "11/11/2024", "quantity": 30,  "unit": "sticks"},
+        {"id": 1, "ingredtype": "Powder", "name": "Flour", "expires": "11/11/2024", "quantity": 10,  "unit": "kg"},
+        {"id": 2, "ingredtype": "Dairy", "name": "Milk", "expires": "11/11/2024", "quantity": 20,  "unit": "liters"},
+        {"id": 1, "ingredtype": "Dairy", "name": "Butter", "expires": "11/11/2024", "quantity": 30,  "unit": "sticks"},
     ]
 
     assert ingredients == expected_result, f"Expected {expected_result}, but got {ingredients}"
 
     # Ensure the SQL query was executed correctly
-    expected_query = normalize_whitespace("SELECT id, type, name, expires, quantity, unit FROM ingredients WHERE quantity > 0")
+    expected_query = normalize_whitespace("SELECT id, ingredtype, name, expires, quantity, unit FROM ingredients WHERE quantity > 0")
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
 
     assert actual_query == expected_query, "The SQL query did not match the expected structure."
@@ -235,7 +235,7 @@ def test_get_random_ingredient(mock_cursor, mocker):
     result = get_random_ingredient()
 
     # Expected result based on the mock random number and fetchall return value
-    expected_result = {"id": 1, "type": "Dairy", "name": "Butter", "expires": "11/11/2024", "quantity": 30,  "unit": "sticks"},
+    expected_result = {"id": 1, "ingredtype": "Dairy", "name": "Butter", "expires": "11/11/2024", "quantity": 30,  "unit": "sticks"},
     # Ensure the result matches the expected output
     assert result == expected_result, f"Expected {expected_result}, got {result}"
 
@@ -243,7 +243,7 @@ def test_get_random_ingredient(mock_cursor, mocker):
     mock_random.assert_called_once_with(3)
 
     # Ensure the SQL query was executed correctly
-    expected_query = normalize_whitespace("SELECT id, type, name, expires, quantity, unit FROM ingredients")
+    expected_query = normalize_whitespace("SELECT id, ingredtype, name, expires, quantity, unit FROM ingredients")
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
 
     assert actual_query == expected_query, "The SQL query did not match the expected structure."
@@ -292,4 +292,4 @@ def test_update_quantity_for_unavailable_ingredient(mock_cursor):
         update_quantity(888, 15)
 
     # Ensure that no SQL query for updating quantity was executed
-    mock_cursor.execute.assert_called_once_with("SELECT id FROM ingredients WHERE id = ?", (888,))
+    mock_cursor.execute.assert_called_once_with("SELECT id FROM ingredients WHERE id = ?", (888))
