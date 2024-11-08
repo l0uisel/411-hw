@@ -4,22 +4,6 @@ import sqlite3
 
 import pytest
 
-from kitchen_collection.models.ingredient_model import (
-    Ingredient,
-    add_ingredient,
-    delete_ingredient,
-    get_ingredient_by_id,
-    get_all_ingredients,
-    get_random_ingredient,
-    update_quantity
-)
-
-from contextlib import contextmanager
-import re
-import sqlite3
-
-import pytest
-
 from meal_max.models.kitchen_model import (
     Meal,
     create_meal,
@@ -59,7 +43,7 @@ def mock_cursor(mocker):
     def mock_get_db_connection():
         yield mock_conn  # Yield the mocked connection object
 
-    mocker.patch("kitchen_collection.models.ingredient_model.get_db_connection", mock_get_db_connection)
+    mocker.patch("meal_max.models.kitchen_model.get_db_connection", mock_get_db_connection)
 
     return mock_cursor  # Return the mock cursor so we can set expectations per test
 
@@ -69,11 +53,11 @@ def mock_cursor(mocker):
 #
 ######################################################
 
-def test_add_ingredient(mock_cursor):
-    """Test adding ingredients to storage."""
+def test_create_meal(mock_cursor):
+    """Test adding new meal to database."""
 
     # Call the function to create a new ingredient
-    add_ingredient(ingredtype="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=800, Unit="grams")
+    create_meal(meal="Spaghetti", cuisine="Italian", price=10.00, difficulty="LOW")
 
     expected_query = normalize_whitespace("""
         INSERT INTO ingredients (ingredtype, name, expires, quantity, unit)
@@ -89,18 +73,18 @@ def test_add_ingredient(mock_cursor):
     actual_arguments = mock_cursor.execute.call_args[0][1]
 
     # Assert that the SQL query was executed with the correct arguments
-    expected_arguments = ("Vegetable", "Cabbage", "11/11/2024", 800, "grams")
+    expected_arguments = ("Spaghetti", "Italian", 10.00, "LOW")
     assert actual_arguments == expected_arguments, f"The SQL query arguments did not match. Expected {expected_arguments}, got {actual_arguments}."
 
-def test_add_ingredient_duplicate(mock_cursor):
+def test_create_meal_duplicate(mock_cursor):
     """Test adding a duplicate ingredient (should raise an error)."""
 
     # Simulate that the database will raise an IntegrityError due to a duplicate entry
     mock_cursor.execute.side_effect = sqlite3.IntegrityError("UNIQUE constraint failed: ingredients.name")
 
     # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
-    with pytest.raises(ValueError, match="Ingredient 'Cabbage' already exists."):
-        add_ingredient(ingredtype="Vegetable", name="Cabbage", expires="11/11/2024", Quantity=800, Unit="grams")
+    with pytest.raises(ValueError, match="Meal with name 'Spaghetti', cuisine 'Italian', price '10.00' and difficulty 'LOW' already exists."):
+        create_meal(meal="Spaghetti", cuisine="Italian", price=10.00, difficulty="LOW")
 
 def test_add_ingredient_invalid_quantity():
     """Test error when trying to add an ingredient with an invalid quantity (e.g., negative quantity)"""
