@@ -23,16 +23,6 @@ def sample_meals():
         Meal(id=2, meal="Sushi", cuisine="Japanese", price=20.00, difficulty="HIGH")
     ]
 
-@pytest.fixture
-def mock_random(mocker):
-    """Mock the random number generator."""
-    return mocker.patch("meal_max.utils.random_utils.get_random", return_value=0.5)
-
-@pytest.fixture
-def mock_update_stats(mocker):
-    """Mock the update_meal_stats function."""
-    return mocker.patch("meal_max.models.kitchen_model.update_meal_stats")
-
 ######################################################
 #
 #    Battle Model Tests
@@ -111,22 +101,31 @@ def test_get_battle_score_different_difficulties(battle_model):
 #
 ######################################################
 
-def test_battle_insufficient_combatants(battle_model, sample_meals):
+def test_battle_insufficient_combatants(battle_model, sample_meals, mocker):
     """Test error when battling with insufficient combatants."""
+    # Mock the functions to avoid actual calls
+    mocker.patch("meal_max.models.battle_model.get_random", return_value=0.5)
+    mocker.patch("meal_max.models.battle_model.update_meal_stats")
+    
     battle_model.prep_combatant(sample_meals[0])
     
     with pytest.raises(ValueError, match="Two combatants must be prepped for a battle."):
         battle_model.battle()
 
-def test_battle_execution(battle_model, sample_meals, mock_random, mock_update_stats):
+def test_battle_execution(battle_model, sample_meals, mocker):
     """Test complete battle execution with controlled random outcome."""
+    # Mock both functions with the correct import path
+    mock_random = mocker.patch("meal_max.models.battle_model.get_random", return_value=0.6)
+    mock_update_stats = mocker.patch("meal_max.models.battle_model.update_meal_stats")
+    
     battle_model.prep_combatant(sample_meals[0])  # Spaghetti
     battle_model.prep_combatant(sample_meals[1])  # Sushi
     
-    # With mock_random returning 0.5 and delta being |103 - 139| / 100 = 0.36
+    # With mock_random returning 0.6 (greater than delta of 0.56)
     # Sushi (combatant_2) should win as delta < random_number
     winner = battle_model.battle()
     
+    # Verify the battle outcome
     assert winner == "Sushi"
     assert len(battle_model.combatants) == 1
     assert battle_model.combatants[0].meal == "Sushi"
@@ -135,18 +134,20 @@ def test_battle_execution(battle_model, sample_meals, mock_random, mock_update_s
     mock_update_stats.assert_any_call(2, 'win')  # Sushi won
     mock_update_stats.assert_any_call(1, 'loss')  # Spaghetti lost
 
-def test_battle_different_random_outcome(battle_model, sample_meals, mock_update_stats, mocker):
+def test_battle_different_random_outcome(battle_model, sample_meals, mocker):
     """Test battle with different random outcome."""
-    # Mock random to return 0.2 (lower than delta of 0.36)
-    mocker.patch("meal_max.utils.random_utils.get_random", return_value=0.2)
+    # Mock both functions with the correct import path
+    mock_random = mocker.patch("meal_max.models.battle_model.get_random", return_value=0.2)
+    mock_update_stats = mocker.patch("meal_max.models.battle_model.update_meal_stats")
     
     battle_model.prep_combatant(sample_meals[0])  # Spaghetti
     battle_model.prep_combatant(sample_meals[1])  # Sushi
     
-    # With random_number = 0.2 and delta = 0.36
+    # With random_number = 0.2 and delta = 0.56
     # Spaghetti (combatant_1) should win as delta > random_number
     winner = battle_model.battle()
     
+    # Verify the battle outcome
     assert winner == "Spaghetti"
     assert len(battle_model.combatants) == 1
     assert battle_model.combatants[0].meal == "Spaghetti"
