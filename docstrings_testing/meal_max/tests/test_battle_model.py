@@ -19,9 +19,8 @@ def battle_model():
 def sample_meals():
     """Returns sample meal instances for testing."""
     return [
-        Meal(id=1, meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="LOW"),
-        Meal(id=2, meal="Sushi", cuisine="Japanese", price=20.00, difficulty="HIGH"),
-        Meal(id=3, meal="Taco", cuisine="Mexican", price=5.00, difficulty="MED")
+        Meal(id=1, meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED"),
+        Meal(id=2, meal="Sushi", cuisine="Japanese", price=20.00, difficulty="HIGH")
     ]
 
 ######################################################
@@ -70,7 +69,7 @@ def test_get_combatants(battle_model, sample_meals):
     
     combatants = battle_model.get_combatants()
     assert len(combatants) == 2
-    assert combatants == sample_meals
+    assert combatants == sample_meals[:2]
 
 ######################################################
 #
@@ -83,7 +82,7 @@ def test_get_battle_score(battle_model, sample_meals):
     # For meal: "Spaghetti", cuisine: "Italian" (7 chars), price: 15.00, difficulty: "MED" (modifier: 2)
     # Expected score: 15.00 * 7 - 2 = 103
     score = battle_model.get_battle_score(sample_meals[0])
-    assert score == 103.0
+    assert score == 103.0   
 
 def test_get_battle_score_different_difficulties(battle_model):
     """Test battle score calculation with different difficulties."""
