@@ -65,10 +65,15 @@ create_meal() {
   response=$(curl -s -X POST -H "Content-Type: application/json" -d "$meal_data" "$BASE_URL/create-meal")
   
   # Check if the creation was successful
-  if echo "$response" | grep -q '"status": "success"'; then
+   if echo "$response" | grep -q '"status": "success"'; then
+
     echo "Meal created successfully."
+
     if [ "$ECHO_JSON" = true ]; then
-      echo "$response" | jq .  # Print JSON response if requested
+
+      echo "Create Meal JSON:"
+
+      echo "$response" | jq .
     fi
   else
     echo "Failed to create meal."
@@ -83,7 +88,7 @@ clear_meals() {
   if echo "$response" | grep -q '"status": "success"'; then
     echo "Meals cleared successfully."
     if [ "$ECHO_JSON" = true ]; then
-      echo "$response" | jq .  # Print JSON response if requested
+      echo "Clear Meals JSON:"
     fi
   else
     echo "Failed to clear meals."
@@ -99,10 +104,44 @@ delete_meal() {
   if echo "$response" | grep -q '"status": "success"'; then
     echo "Meal deleted successfully."
     if [ "$ECHO_JSON" = true ]; then
-      echo "$response" | jq .  # Print JSON response if requested
+      echo "Delete Meal JSON:"
     fi
   else
     echo "Failed to delete meal."
+    exit 1
+  fi
+}
+
+get_meal_by_id() {
+  local meal_id=$1
+  echo "Getting meal by ID: $meal_id..."
+  # Request to retrieve the specific meal by ID
+  response=$(curl -s -X GET "$BASE_URL/get-meal-by-id/$meal_id")
+  if echo "$response" | grep -q '"status": "success"'; then
+    echo "Meal retrieved successfully."
+    if [ "$ECHO_JSON" = true ]; then
+      echo "Get Meal by ID JSON:"
+      echo "$response" | jq .
+    fi
+  else
+    echo "Failed to get meal by ID."
+    exit 1
+  fi
+}
+
+get_meal_by_name() {
+  local meal_name=$1
+  echo "Getting meal by name: $meal_name..."
+  # Request to retrieve the specific meal by name
+  response=$(curl -s -X GET "$BASE_URL/get-meal-by-name/$meal_name")
+  if echo "$response" | grep -q '"status": "success"'; then
+    echo "Meal retrieved successfully."
+    if [ "$ECHO_JSON" = true ]; then
+      echo "Get Meal by Name JSON:"
+      echo "$response" | jq .
+    fi
+  else
+    echo "Failed to get meal by name."
     exit 1
   fi
 }
@@ -120,7 +159,7 @@ battle() {
   if echo "$response" | grep -q '"status": "success"'; then
     echo "Battle completed successfully."
     if [ "$ECHO_JSON" = true ]; then
-      echo "$response" | jq .  # Print JSON response if requested
+      echo "Battle JSON:"
     fi
   else
     echo "Battle failed."
@@ -134,6 +173,30 @@ battle() {
 #
 ###############################################
 
+prep_combatant() {
+  local meal_name="$1"
+  echo "Preparing combatant: $meal_name..."
+  
+  # Ensure meal_name is properly escaped for JSON
+  prep_data="{\"meal\": \"$meal_name\"}"
+  
+  # POST request to prepare the combatant
+  response=$(curl -s -X POST -H "Content-Type: application/json" -d "$prep_data" "$BASE_URL/prep-combatant")
+
+  # Check if the response indicates success
+  if echo "$response" | grep -q '"status": "success"'; then
+    echo "Combatant prepared successfully."
+    if [ "$ECHO_JSON" = true ]; then
+      echo "Prep Combatant JSON:"
+      echo "$response" | jq .
+    fi
+  else
+    echo "Failed to prepare combatant."
+    echo "Response: $response"  # Output the full response for debugging
+    exit 1
+  fi
+}
+
 clear_combatants() {
   echo "Clearing combatants..."
   # Send POST request to clear all combatants
@@ -141,7 +204,7 @@ clear_combatants() {
   if echo "$response" | grep -q '"status": "success"'; then
     echo "Combatants cleared successfully."
     if [ "$ECHO_JSON" = true ]; then
-      echo "$response" | jq .  # Print JSON response if requested
+      echo "Clear Combatants JSON:"
     fi
   else
     echo "Failed to clear combatants."
@@ -156,7 +219,7 @@ get_combatants() {
   if echo "$response" | grep -q '"status": "success"'; then
     echo "Combatants retrieved successfully."
     if [ "$ECHO_JSON" = true ]; then
-      echo "$response" | jq .  # Print JSON response if requested
+      echo "Get Combatants JSON:"
     fi
   else
     echo "Failed to get combatants."
@@ -166,7 +229,29 @@ get_combatants() {
 
 # ###############################################
 #
-# Tests
+# Leaderboard
+#
+# ###############################################
+
+get_leaderboard() {
+  echo "Getting leaderboard..."
+    # Request to retrieve the leaderboard
+  response=$(curl -s -X GET "$BASE_URL/leaderboard")
+  if echo "$response" | grep -q '"status": "success"'; then
+    echo "Leaderboard retrieved successfully."
+    if [ "$ECHO_JSON" = true ]; then
+      echo "Leaderboard JSON:"
+      echo "$response" | jq .
+    fi
+  else
+    echo "Failed to get leaderboard."
+    exit 1
+  fi
+}
+
+# ###############################################
+#
+# Further Tests
 #
 # ###############################################
 
