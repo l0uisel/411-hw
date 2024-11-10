@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import logging
 import sqlite3
+import os
 from typing import Dict, Any
 
 from meal_max.utils.sql_utils import get_db_connection
@@ -27,13 +28,13 @@ class Meal:
 
 
 def create_meal(meal: str, cuisine: str, price: float, difficulty: str) -> None:
-    """Creating an entry for our meal table.
+    """Creating an entry for our meal table (database).
 
     Args:
         meal (str): The meal entry name.
         cusine (str): The cuisine type.
         price (float): The cost of meal (postive number).
-        difficulty (str): Difficulty level of the meal - low, med or high.
+        difficulty (str): Difficulty level of the meal: 'LOW', 'MED', or 'HIGH'.
 
     Raises:
         ValueError: If price is a non-positive value or difficulty level is invalid.
@@ -100,6 +101,28 @@ def delete_meal(meal_id: int) -> None:
         logger.error("Database error: %s", str(e))
         raise e
 
+def clear_meals() -> None:
+    """
+    Deleting all meals, recreating the meal table.
+    Recreates the meals table, effectively deleting all meals.
+
+    Raises:
+        sqlite3.Error: If there are database errors.
+    """
+    try:
+        with open(os.getenv("SQL_CREATE_TABLE_PATH", "/app/sql/create_meal_table.sql"), "r") as fh:
+            create_table_script = fh.read()
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.executescript(create_table_script)
+            conn.commit()
+
+            logger.info("Meals cleared successfully.")
+
+    except sqlite3.Error as e:
+        logger.error("Database error while clearing meals: %s", str(e))
+        raise e
+
 def get_leaderboard(sort_by: str="wins") -> Dict[str, Any]:
     """Get meal leaderboard ranked on wins.
 
@@ -153,7 +176,7 @@ def get_leaderboard(sort_by: str="wins") -> Dict[str, Any]:
         raise e
 
 def get_meal_by_id(meal_id: int) -> Meal:
-    """Get meal by its identification.
+    """Get meal by its unique identification.
 
     Args:
         meal_id (int): Unique identification of meal.
@@ -219,7 +242,7 @@ def get_meal_by_name(meal_name: str) -> Meal:
         raise e
 
 def update_meal_stats(meal_id: int, result: str) -> None:
-    """Updates battle statistics for a meal.
+    """Updates battle statistics for a meal. Result of meal is 'win or 'loss'.
 
     Args:
         meal_id (int): Unique identification of meal.
