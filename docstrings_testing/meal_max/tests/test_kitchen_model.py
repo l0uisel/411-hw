@@ -57,11 +57,11 @@ def test_create_meal(mock_cursor):
     """Test adding new meal to database."""
 
     # Call the function to create a new ingredient
-    create_meal(meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="LOW")
+    create_meal(meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
 
     expected_query = normalize_whitespace("""
-        INSERT INTO ingredients (ingredtype, name, expires, quantity, unit)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO meals (meal, cuisine, price, difficulty)
+        VALUES (?, ?, ?, ?)
     """)
 
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
@@ -73,32 +73,32 @@ def test_create_meal(mock_cursor):
     actual_arguments = mock_cursor.execute.call_args[0][1]
 
     # Assert that the SQL query was executed with the correct arguments
-    expected_arguments = ("Spaghetti", "Italian", 15.00, "LOW")
+    expected_arguments = ("Spaghetti", "Italian", 15.00, "MED")
     assert actual_arguments == expected_arguments, f"The SQL query arguments did not match. Expected {expected_arguments}, got {actual_arguments}."
 
 def test_create_meal_duplicate(mock_cursor):
     """Test adding a duplicate meal (should raise an error)."""
 
     # Simulate that the database will raise an IntegrityError due to a duplicate entry
-    mock_cursor.execute.side_effect = sqlite3.IntegrityError("UNIQUE constraint failed: ingredients.name")
+    mock_cursor.execute.side_effect = sqlite3.IntegrityError("UNIQUE constraint failed: meals.meal, meals.cuisine, meals.price, meals.difficulty")
 
     # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
-    with pytest.raises(ValueError, match="Meal with name 'Spaghetti', cuisine 'Italian', price '15.00' and difficulty 'LOW' already exists."):
-        create_meal(meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="LOW")
+    with pytest.raises(ValueError, match="Meal with name 'Spaghetti', cuisine 'Italian', price '15.00' and difficulty 'MED' already exists."):
+        create_meal(meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
 
 def test_create_meal_invalid_price():
     """Test error when trying to create a meal with an invalid price (e.g., negative quantity)"""
 
     # Attempt to add a meal with a negative price
     with pytest.raises(ValueError, match="Invalid meal price: -15.00 \(must be a positive number\)."):
-        create_meal(meal="Spaghetti", cuisine="Italian", price=-15.00, difficulty="LOW")
+        create_meal(meal="Spaghetti", cuisine="Italian", price=-15.00, difficulty="MED")
 
-    # Attempt to add a meal with a non-numeric price
-    with pytest.raises(ValueError, match="Invalid ingredient quantity: -800 \(must be a positive integer\)."):
-        create_meal(meal="Spaghetti", cuisine="Italian", price="ten", difficulty="LOW")
+    # Attempt to add a meal with a non-numeric price  
+    with pytest.raises(ValueError, match="Invalid price: fifteen \(must be a positive integer\)."):
+        create_meal(meal="Spaghetti", cuisine="Italian", price="fifteen", difficulty="MED")
 
 def test_delete_meal(mock_cursor):
-    """Test soft deleting a meal from the database by meal ID."""
+    """Test deleting a meal from the database by meal ID."""
 
     # Simulate that the meal exists (id = 1)
     mock_cursor.fetchone.return_value = ([False])
@@ -133,8 +133,7 @@ def test_create_meal_invalid_difficulty():
 
     with pytest.raises(
         ValueError,
-        match="Invalid difficulty level: 'EASY'. Must be 'LOW', 'MED', or 'HIGH'.",
-    ):
+        match="Invalid difficulty level: 'EASY'. Must be 'LOW', 'MED', or 'HIGH'.",):
         create_meal(meal="Sushi", cuisine="Japanese", price=18.50, difficulty="HIGH")
 
 def test_delete_meal_bad_id(mock_cursor):
@@ -183,13 +182,13 @@ def test_get_meal_by_id(mock_cursor):
     """Test retrieving a meal by its ID."""
 
     # Simulate that the meal exists (id = 1)
-    mock_cursor.fetchone.return_value = (1, "Spaghetti", "Italian", 15.00, "LOW", False)
+    mock_cursor.fetchone.return_value = (1, "Spaghetti", "Italian", 15.00, "MED", False)
 
     # Call the function and check the result
     result = get_meal_by_id(1)
 
     # Expected result based on the simulated fetchone return value
-    expected_result = Meal(id=1, meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="LOW")
+    expected_result = Meal(id=1, meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
 
     # Ensure the result matches the expected output
     assert result == expected_result, f"Expected {expected_result}, got {result}"
@@ -214,7 +213,7 @@ def test_get_meal_by_name(mock_cursor):
     """Test retrieving a meal by its name."""
 
     # Simulate that the meal exists (name = "Spaghetti")
-    mock_cursor.fetchone.return_value = (1, "Spaghetti", "Italian", 15.00, "LOW", False)
+    mock_cursor.fetchone.return_value = (1, "Spaghetti", "Italian", 15.00, "MED", False)
 
     # Call the function and check the result
     result = get_meal_by_name("Spaghetti")
