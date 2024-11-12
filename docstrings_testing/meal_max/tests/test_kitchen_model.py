@@ -55,10 +55,10 @@ def test_create_meal(mock_cursor):
     """Test adding new meal to database."""
 
     # Call the function to create a new ingredient
-    create_meal(meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
+    create_meal(name="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
 
     expected_query = normalize_whitespace("""
-        INSERT INTO meals (meal, cuisine, price, difficulty)
+        INSERT INTO meals (name, cuisine, price, difficulty)
         VALUES (?, ?, ?, ?)
     """)
 
@@ -82,14 +82,18 @@ def test_create_meal_duplicate(mock_cursor):
 
     # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
     with pytest.raises(ValueError, match="Meal with name 'Spaghetti', cuisine 'Italian', price '15.00' and difficulty 'MED' already exists."):
-        create_meal("Spaghetti", "Italian", 15.00, "MED")
+        create_meal(name="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
 
 def test_create_meal_invalid_price():
     """Test error when trying to create a meal with an invalid price (negative price)"""
 
     # Attempt to add a meal with a negative price
-    with pytest.raises(ValueError, match="Invalid meal price. Price must be a positive number."):
-        create_meal("Spaghetti", "Italian", -15.00, "MED")
+    with pytest.raises(ValueError, match="Invalid meal price: -15.00. Price must be a positive number."):
+        create_meal(name="Spaghetti", cuisine="Italian", price=-15.00, difficulty="MED")
+    
+        # Attempt to create a meal with a non-integer price
+    with pytest.raises(ValueError, match="Invalid price: fifteen. Price must be a positive integer."):
+        create_meal(name="Spaghetti", cuisine="Italian", price="fifteen", difficulty="MED")
 
 def test_delete_meal(mock_cursor):
     """Test deleting a meal from the database by meal ID."""
@@ -125,9 +129,8 @@ def test_delete_meal(mock_cursor):
 def test_create_meal_invalid_difficulty():
     """Test error when trying to create a meal with an invalid difficulty."""
 
-    with pytest.raises(
-        ValueError, match="Invalid difficulty level. Must be 'LOW', 'MED', or 'HIGH'."):
-        create_meal("Sushi", "Japanese", 18.50, "MIDDLE")
+    with pytest.raises(ValueError, match="Invalid difficulty level. Must be 'LOW', 'MED', or 'HIGH'."):
+        create_meal(name="Sushi", cuisine="Japanese", price=18.50, difficulty="MIDDLE")
 
 def test_delete_meal_bad_id(mock_cursor):
     """Test error when trying to delete a non-existent meal."""
@@ -165,13 +168,13 @@ def test_get_meal_by_id(mock_cursor):
     result = get_meal_by_id(1)
 
     # Expected result based on the simulated fetchone return value
-    expected_result = Meal(id=1, meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
+    expected_result = Meal(id=1, name="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
 
     # Ensure the result matches the expected output
     assert result == expected_result, f"Expected {expected_result}, got {result}"
 
     # Ensure the SQL query was executed correctly
-    expected_query = normalize_whitespace("SELECT id, meal, cuisine, price, difficulty, deleted FROM meals WHERE id = ?")
+    expected_query = normalize_whitespace("SELECT id, name, cuisine, price, difficulty, deleted FROM meals WHERE id = ?")
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
 
     assert actual_query == expected_query, "The SQL query did not match the expected structure."
@@ -186,13 +189,13 @@ def test_get_meal_by_name(mock_cursor):
     result = get_meal_by_name("Spaghetti")
 
     # Expected result based on the simulated fetchone return value
-    expected_result = Meal(id=1, meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
+    expected_result = Meal(id=1, name="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
 
     # Ensure the result matches the expected output
     assert result == expected_result, f"Expected {expected_result}, got {result}"
 
     # Ensure the SQL query was executed correctly
-    expected_query = normalize_whitespace("SELECT id, meal, cuisine, price, difficulty, deleted FROM meals WHERE meal = ?")
+    expected_query = normalize_whitespace("SELECT id, meal, cuisine, price, difficulty, deleted FROM meals WHERE name = ?")
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
 
     assert actual_query == expected_query, "The SQL query did not match the expected structure."
