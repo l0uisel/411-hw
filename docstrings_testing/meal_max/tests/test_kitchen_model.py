@@ -82,14 +82,14 @@ def test_create_meal_duplicate(mock_cursor):
 
     # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
     with pytest.raises(ValueError, match="Meal with name 'Spaghetti', cuisine 'Italian', price '15.00' and difficulty 'MED' already exists."):
-        create_meal(meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
+        create_meal("Spaghetti", "Italian", 15.00, "MED")
 
 def test_create_meal_invalid_price():
     """Test error when trying to create a meal with an invalid price (negative price)"""
 
     # Attempt to add a meal with a negative price
     with pytest.raises(ValueError, match="Invalid meal price. Price must be a positive number."):
-        create_meal(meal="Spaghetti", cuisine="Italian", price=-15.00, difficulty="MED")
+        create_meal("Spaghetti", "Italian", -15.00, "MED")
 
 def test_delete_meal(mock_cursor):
     """Test deleting a meal from the database by meal ID."""
@@ -127,7 +127,7 @@ def test_create_meal_invalid_difficulty():
 
     with pytest.raises(
         ValueError, match="Invalid difficulty level. Must be 'LOW', 'MED', or 'HIGH'."):
-        create_meal(meal="Sushi", cuisine="Japanese", price=18.50, difficulty="MIDDLE")
+        create_meal("Sushi", "Japanese", 18.50, "MIDDLE")
 
 def test_delete_meal_bad_id(mock_cursor):
     """Test error when trying to delete a non-existent meal."""
