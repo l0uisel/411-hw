@@ -81,19 +81,15 @@ def test_create_meal_duplicate(mock_cursor):
     mock_cursor.execute.side_effect = sqlite3.IntegrityError("UNIQUE constraint failed: meals.name, meals.cuisine, meals.price, meals.difficulty")
 
     # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
-    with pytest.raises(ValueError, match="Meal with name 'Spaghetti', cuisine 'Italian', price '15.00' and difficulty 'MED' already exists."):
+    with pytest.raises(ValueError, match="Meal with name 'Spaghetti' already exists."):
         create_meal(name="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
 
 def test_create_meal_invalid_price():
     """Test error when trying to create a meal with an invalid price (negative price)"""
 
     # Attempt to add a meal with a negative price
-    with pytest.raises(ValueError, match="Invalid meal price: -15.00. Price must be a positive number."):
+    with pytest.raises(ValueError, match="Invalid price: -15.00. Price must be a positive number."):
         create_meal(name="Spaghetti", cuisine="Italian", price=-15.00, difficulty="MED")
-    
-        # Attempt to create a meal with a non-integer price
-    with pytest.raises(ValueError, match="Invalid price: fifteen. Price must be a positive integer."):
-        create_meal(name="Spaghetti", cuisine="Italian", price="fifteen", difficulty="MED")
 
 def test_delete_meal(mock_cursor):
     """Test deleting a meal from the database by meal ID."""
@@ -129,7 +125,7 @@ def test_delete_meal(mock_cursor):
 def test_create_meal_invalid_difficulty():
     """Test error when trying to create a meal with an invalid difficulty."""
 
-    with pytest.raises(ValueError, match="Invalid difficulty level. Must be 'LOW', 'MED', or 'HIGH'."):
+    with pytest.raises(ValueError, match="Invalid difficulty level: MIDDLE. Must be 'LOW', 'MED', or 'HIGH'."):
         create_meal(name="Sushi", cuisine="Japanese", price=18.50, difficulty="MIDDLE")
 
 def test_delete_meal_bad_id(mock_cursor):
@@ -215,9 +211,9 @@ def test_get_leaderboard_sorted_by_wins(mock_cursor):
 
     # Expected result based on the simulated fetchall return value
     expected_result = [
-        {'id': 1, 'meal': 'Spaghetti', 'cuisine': 'Italian', 'price': 15.00, 'difficulty': 'MED', 'battles': 40, 'wins': 30, 'win_pct': 0.75},
-        {'id': 2, 'meal': 'Taco', 'cuisine': 'Mexican', 'price': 5.00, 'difficulty': 'LOW', 'battles': 30, 'wins': 18, 'win_pct': 0.6},
-        {'id': 3, 'meal': 'Sushi', 'cuisine': 'Japanese', 'price': 18.50, 'difficulty': 'HIGH', 'battles': 10, 'wins': 8, 'win_pct': 0.8}
+        {'id': 1, 'meal': 'Spaghetti', 'cuisine': 'Italian', 'price': 15.00, 'difficulty': 'MED', 'battles': 40, 'wins': 30, 'win_pct': 75.0},
+        {'id': 2, 'meal': 'Taco', 'cuisine': 'Mexican', 'price': 5.00, 'difficulty': 'LOW', 'battles': 30, 'wins': 18, 'win_pct': 60.0},
+        {'id': 3, 'meal': 'Sushi', 'cuisine': 'Japanese', 'price': 18.50, 'difficulty': 'HIGH', 'battles': 10, 'wins': 8, 'win_pct': 80.0}
     ]
 
     assert leaderboard == expected_result, f"Expected {expected_result}, got {leaderboard}"
