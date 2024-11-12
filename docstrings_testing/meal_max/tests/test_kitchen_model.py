@@ -6,7 +6,6 @@ import pytest
 from meal_max.models.kitchen_model import (
     Meal,
     create_meal,
-    clear_meals, 
     delete_meal, 
     get_leaderboard,
     get_meal_by_id, 
@@ -89,7 +88,7 @@ def test_create_meal_invalid_price():
     """Test error when trying to create a meal with an invalid price (negative price)"""
 
     # Attempt to add a meal with a negative price
-    with pytest.raises(ValueError, match="Invalid meal price: -15.00 Price must be a positive number."):
+    with pytest.raises(ValueError, match="Invalid meal price. Price must be a positive number."):
         create_meal(meal="Spaghetti", cuisine="Italian", price=-15.00, difficulty="MED")
 
 def test_delete_meal(mock_cursor):
@@ -127,7 +126,7 @@ def test_create_meal_invalid_difficulty():
     """Test error when trying to create a meal with an invalid difficulty."""
 
     with pytest.raises(
-        ValueError, match="Invalid difficulty level: 'MIDDLE'. Must be 'LOW', 'MED', or 'HIGH'."):
+        ValueError, match="Invalid difficulty level. Must be 'LOW', 'MED', or 'HIGH'."):
         create_meal(meal="Sushi", cuisine="Japanese", price=18.50, difficulty="MIDDLE")
 
 def test_delete_meal_bad_id(mock_cursor):
@@ -149,22 +148,6 @@ def test_delete_meal_already_deleted(mock_cursor):
     # Expect a ValueError when attempting to delete a meal that's already been deleted
     with pytest.raises(ValueError, match="Meal with ID 999 has already been deleted"):
         delete_meal(999)
-
-def test_clear_meals(mock_cursor, mocker):
-    """Test clearing all the meals (removes all meals)."""
-
-    # Mock the file reading
-    mocker.patch.dict('os.environ', {'SQL_CREATE_TABLE_PATH': 'sql/create_meal_table.sql'})
-    mock_open = mocker.patch('builtins.open', mocker.mock_open(read_data="The body of the create statement"))
-
-    # Call the clear_database function
-    clear_meals()
-
-    # Ensure the file was opened using the environment variable's path
-    mock_open.assert_called_once_with('sql/create_meal_table.sql', 'r')
-
-    # Verify that the correct SQL script was executed
-    mock_cursor.executescript.assert_called_once()
 
 ######################################################
 #

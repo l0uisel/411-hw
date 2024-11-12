@@ -15,12 +15,12 @@ def battle_model():
     """Returns a fresh BattleModel instance for each test."""
     return BattleModel()
 
-@pytest.fixture
+@pytest.fixture()
 def sample_meals():
     """Returns sample meal instances for testing."""
     return [
         Meal(id=1, meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED"),
-        Meal(id=2, meal="Sushi", cuisine="Japanese", price=20.00, difficulty="HIGH")
+        Meal(id=2, meal="Sushi", cuisine="Japanese", price=18.50, difficulty="HIGH")
     ]
 
 ######################################################
