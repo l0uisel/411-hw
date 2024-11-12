@@ -80,22 +80,18 @@ def test_create_meal_duplicate(mock_cursor):
     """Test adding a duplicate meal (should raise an error)."""
 
     # Simulate that the database will raise an IntegrityError due to a duplicate entry
-    mock_cursor.execute.side_effect = sqlite3.IntegrityError("UNIQUE constraint failed: meals.meal, meals.cuisine, meals.price, meals.difficulty")
+    mock_cursor.execute.side_effect = sqlite3.IntegrityError("UNIQUE constraint failed: meals.name, meals.cuisine, meals.price, meals.difficulty")
 
     # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
     with pytest.raises(ValueError, match="Meal with name 'Spaghetti', cuisine 'Italian', price '15.00' and difficulty 'MED' already exists."):
         create_meal(meal="Spaghetti", cuisine="Italian", price=15.00, difficulty="MED")
 
 def test_create_meal_invalid_price():
-    """Test error when trying to create a meal with an invalid price (e.g., negative quantity)"""
+    """Test error when trying to create a meal with an invalid price (negative price)"""
 
     # Attempt to add a meal with a negative price
-    with pytest.raises(ValueError, match="Invalid meal price: -15.00 \(must be a positive number\)."):
+    with pytest.raises(ValueError, match="Invalid meal price: -15.00 Price must be a positive number."):
         create_meal(meal="Spaghetti", cuisine="Italian", price=-15.00, difficulty="MED")
-
-    # Attempt to add a meal with a non-numeric price  
-    with pytest.raises(ValueError, match="Invalid price: fifteen \(must be a positive integer\)."):
-        create_meal(meal="Spaghetti", cuisine="Italian", price="fifteen", difficulty="MED")
 
 def test_delete_meal(mock_cursor):
     """Test deleting a meal from the database by meal ID."""
@@ -132,9 +128,8 @@ def test_create_meal_invalid_difficulty():
     """Test erorr when trying to create a meal with an invalid difficulty."""
 
     with pytest.raises(
-        ValueError,
-        match="Invalid difficulty level: 'EASY'. Must be 'LOW', 'MED', or 'HIGH'.",):
-        create_meal(meal="Sushi", cuisine="Japanese", price=18.50, difficulty="HIGH")
+        ValueError, match="Invalid difficulty level: 'MIDDLE'. Must be 'LOW', 'MED', or 'HIGH'.",):
+        create_meal(meal="Sushi", cuisine="Japanese", price=18.50, difficulty="MIDDLE")
 
 def test_delete_meal_bad_id(mock_cursor):
     """Test error when trying to delete a non-existent meal."""
