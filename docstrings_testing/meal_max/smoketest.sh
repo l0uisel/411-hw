@@ -72,26 +72,10 @@ create_meal() {
     if [ "$ECHO_JSON" = true ]; then
 
       echo "Create Meal JSON:"
-
       echo "$response" | jq .
     fi
   else
     echo "Failed to create meal."
-    exit 1
-  fi
-}
-
-clear_meals() {
-  echo "Clearing meals..."
-  # Send DELETE request to clear all meals
-  response=$(curl -s -X DELETE "$BASE_URL/clear-meals")
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "Meals cleared successfully."
-    if [ "$ECHO_JSON" = true ]; then
-      echo "Clear Meals JSON:"
-    fi
-  else
-    echo "Failed to clear meals."
     exit 1
   fi
 }
@@ -105,6 +89,7 @@ delete_meal() {
     echo "Meal deleted successfully."
     if [ "$ECHO_JSON" = true ]; then
       echo "Delete Meal JSON:"
+      echo "$response" | jq .
     fi
   else
     echo "Failed to delete meal."
@@ -160,6 +145,7 @@ battle() {
     echo "Battle completed successfully."
     if [ "$ECHO_JSON" = true ]; then
       echo "Battle JSON:"
+      echo "$response" | jq .
     fi
   else
     echo "Battle failed."
@@ -220,6 +206,8 @@ get_combatants() {
     echo "Combatants retrieved successfully."
     if [ "$ECHO_JSON" = true ]; then
       echo "Get Combatants JSON:"
+      echo "$response" | jq .
+      
     fi
   else
     echo "Failed to get combatants."
@@ -259,8 +247,7 @@ get_leaderboard() {
 check_health
 check_db
 
-# Clear the meals and create new ones
-clear_meals
+#Create new meals
 create_meal "Taco" "Mexican" 5.00 "LOW"
 create_meal "Spaghetti" "Italian" 15.00 "MED"
 create_meal "Sushi" "Japanese" 18.50 "HIGH"
