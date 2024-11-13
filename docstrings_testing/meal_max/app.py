@@ -135,6 +135,29 @@ def delete_meal(meal_id: int) -> Response:
         app.logger.error(f"Error deleting meal: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
+
+@app.route('/api/clear-meal', methods=['DELETE'])
+
+def clear_meals() -> Response:
+    """
+    Route to clear all meals (recreates the table).
+
+    Returns:
+        JSON response indicating success of the operation or error message.
+    """
+
+    try:
+        app.logger.info("Clearing the meals")
+
+        # Clear the entire meals
+        kitchen_model.clear_meal()
+
+        return make_response(jsonify({'status': 'success', 'message': 'Meal cleared'}), 200)
+    
+    except Exception as e:
+        app.logger.error(f"Error clearing the meal: {e}")
+        return make_response(jsonify({'error': str(e)}), 500)
+
 @app.route('/api/get-meal-by-id/<int:meal_id>', methods=['GET'])
 def get_meal_by_id(meal_id: int) -> Response:
     """
