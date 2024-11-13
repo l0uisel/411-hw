@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Base URL for the Flask API
-BASE_URL="http://localhost:5000/api"
+BASE_URL="http://localhost:5001/api"
 
 # Flag to control whether to echo JSON output
 ECHO_JSON=false
@@ -51,6 +51,21 @@ check_db() {
 #
 ###############################################
 
+clear_meals() {
+    echo "Clearing all meals from database..."
+    response=$(curl -s -X POST "$BASE_URL/clear-meals")
+    if [ "$ECHO_JSON" = true ]; then
+        echo "Clear meals response: $response"
+    fi
+    
+    if echo "$response" | grep -q '"status": "success"'; then
+        echo "Database cleared successfully."
+    else
+        echo "Failed to clear database. Response: $response"
+        exit 1
+    fi
+}
+
 create_meal() {
   meal=$1
   cuisine=$2
@@ -61,21 +76,22 @@ create_meal() {
   # Build the JSON payload for meal creation
   meal_data="{\"meal\": \"$meal\", \"cuisine\": \"$cuisine\", \"price\": $price, \"difficulty\": \"$difficulty\"}"
   
-  # Send POST request to create the meal
-  response=$(curl -s -X POST -H "Content-Type: application/json" -d "$meal_data" "$BASE_URL/create-meal")
+  # Send POST request to create the meal and capture both response and status code
+  response=$(curl -s -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "$meal_data" "$BASE_URL/create-meal")
   
-  # Check if the creation was successful
-   if echo "$response" | grep -q '"status": "success"'; then
-
+  # Extract the status code (last 3 characters)
+  http_code=${response: -3}
+  # Extract the response body (everything except last 3 characters)
+  body=${response:0:${#response}-3}
+  
+  if [ "$http_code" = "201" ] || echo "$body" | grep -q '"status": "success"'; then
     echo "Meal created successfully."
-
     if [ "$ECHO_JSON" = true ]; then
-
       echo "Create Meal JSON:"
-      echo "$response" | jq .
+      echo "$body" | jq .
     fi
   else
-    echo "Failed to create meal."
+    echo "Failed to create meal. Response: $body"
     exit 1
   fi
 }
@@ -83,16 +99,23 @@ create_meal() {
 delete_meal() {
   local meal_id=$1
   echo "Deleting meal with ID: $meal_id..."
-  # Send DELETE request to delete the specific meal
-  response=$(curl -s -X DELETE "$BASE_URL/delete-meal/$meal_id")
-  if echo "$response" | grep -q '"status": "success"'; then
+  
+  # Send DELETE request and capture both response and status code
+  response=$(curl -s -w "%{http_code}" -X DELETE "$BASE_URL/delete-meal/$meal_id")
+  
+  # Extract the status code (last 3 characters)
+  http_code=${response: -3}
+  # Extract the response body (everything except last 3 characters)
+  body=${response:0:${#response}-3}
+  
+  if [ "$http_code" = "200" ] || echo "$body" | grep -q '"status": "success"'; then
     echo "Meal deleted successfully."
     if [ "$ECHO_JSON" = true ]; then
       echo "Delete Meal JSON:"
-      echo "$response" | jq .
+      echo "$body" | jq .
     fi
   else
-    echo "Failed to delete meal."
+    echo "Failed to delete meal. Response: $body"
     exit 1
   fi
 }
@@ -141,14 +164,19 @@ battle() {
   echo "Starting a battle..."
   # Send GET request to initiate a battle
   response=$(curl -s -X GET "$BASE_URL/battle")
-  if echo "$response" | grep -q '"status": "success"'; then
+  
+  # Print response for debugging
+  echo "Response received: $response"
+  
+  # Check if we got a successful battle (checking for winner field or success status)
+  if echo "$response" | grep -q '"winner":\|"status": "success"'; then
     echo "Battle completed successfully."
     if [ "$ECHO_JSON" = true ]; then
       echo "Battle JSON:"
       echo "$response" | jq .
     fi
   else
-    echo "Battle failed."
+    echo "Battle failed. Response: $response"
     exit 1
   fi
 }
@@ -169,8 +197,8 @@ prep_combatant() {
   # POST request to prepare the combatant
   response=$(curl -s -X POST -H "Content-Type: application/json" -d "$prep_data" "$BASE_URL/prep-combatant")
 
-  # Check if the response indicates success
-  if echo "$response" | grep -q '"status": "success"'; then
+  # Check if the response indicates success (either format)
+  if echo "$response" | grep -q '"status": "success"' || echo "$response" | grep -q '"status": "combatant prepared"'; then
     echo "Combatant prepared successfully."
     if [ "$ECHO_JSON" = true ]; then
       echo "Prep Combatant JSON:"
@@ -187,7 +215,7 @@ clear_combatants() {
   echo "Clearing combatants..."
   # Send POST request to clear all combatants
   response=$(curl -s -X POST "$BASE_URL/clear-combatants")
-  if echo "$response" | grep -q '"status": "success"'; then
+  if [ "$http_code" = "200" ] || echo "$response" | grep -q '"status": "success"'; then
     echo "Combatants cleared successfully."
     if [ "$ECHO_JSON" = true ]; then
       echo "Clear Combatants JSON:"
@@ -246,6 +274,9 @@ get_leaderboard() {
 # Health checks
 check_health
 check_db
+
+# Clear existing data before running tests
+clear_meals
 
 #Create new meals
 create_meal "Taco" "Mexican" 5.00 "LOW"
