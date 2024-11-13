@@ -10,7 +10,8 @@ from meal_max.models.kitchen_model import (
     get_leaderboard,
     get_meal_by_id, 
     get_meal_by_name,
-    update_meal_stats
+    update_meal_stats,
+    clear_meals
 )
 
 ######################################################
