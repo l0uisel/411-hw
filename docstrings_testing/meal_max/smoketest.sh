@@ -51,21 +51,6 @@ check_db() {
 #
 ###############################################
 
-clear_meals() {
-    echo "Clearing all meals from database..."
-    response=$(curl -s -X POST "$BASE_URL/clear-meals")
-    if [ "$ECHO_JSON" = true ]; then
-        echo "Clear meals response: $response"
-    fi
-    
-    if echo "$response" | grep -q '"status": "success"'; then
-        echo "Database cleared successfully."
-    else
-        echo "Failed to clear database. Response: $response"
-        exit 1
-    fi
-}
-
 create_meal() {
   meal=$1
   cuisine=$2
