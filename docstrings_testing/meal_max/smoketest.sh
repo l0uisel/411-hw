@@ -51,6 +51,28 @@ check_db() {
 #
 ###############################################
 
+clear_meals() {
+  echo "Clearing all meals..."
+  # Send DELETE request and capture both response and status code
+  response=$(curl -s -w "%{http_code}" -X DELETE "$BASE_URL/clear-meal")
+  
+  # Extract the status code (last 3 characters)
+  http_code=${response: -3}
+  # Extract the response body (everything except last 3 characters)
+  body=${response:0:${#response}-3}
+  
+  if [ "$http_code" = "200" ] || echo "$body" | grep -q '"status": "success"'; then
+    echo "All meals cleared successfully."
+    if [ "$ECHO_JSON" = true ]; then
+      echo "Clear Meals JSON:"
+      echo "$body" | jq .
+    fi
+  else
+    echo "Failed to clear meals. Response: $body"
+    exit 1
+  fi
+}
+
 create_meal() {
   meal=$1
   cuisine=$2
@@ -259,6 +281,9 @@ get_leaderboard() {
 # Health checks
 check_health
 check_db
+
+# Clear meals
+clear_meals
 
 #Create new meals
 create_meal "Taco" "Mexican" 5.00 "LOW"

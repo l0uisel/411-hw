@@ -150,7 +150,7 @@ def clear_meals() -> Response:
         app.logger.info("Clearing the meals")
 
         # Clear the entire meals
-        kitchen_model.clear_meal()
+        kitchen_model.clear_meals()
 
         return make_response(jsonify({'status': 'success', 'message': 'Meal cleared'}), 200)
     
