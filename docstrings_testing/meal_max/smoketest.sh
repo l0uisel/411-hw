@@ -260,28 +260,27 @@ get_leaderboard() {
 check_health
 check_db
 
-# Clear existing data before running tests
-clear_meals
-
 #Create new meals
 create_meal "Taco" "Mexican" 5.00 "LOW"
 create_meal "Spaghetti" "Italian" 15.00 "MED"
 create_meal "Sushi" "Japanese" 18.50 "HIGH"
+create_meal "Dumpling" "Chinese" 8.50 "LOW"
 
 # Delete a meal by ID and get meal details
 delete_meal 1
-get_meal_by_id 2
-get_meal_by_name "Spaghetti"
+
+get_meal_by_id 2 # Should return Spaghetti details
+get_meal_by_name "Spaghetti" # Should return Spaghetti details
 
 # Prepare combatants and run battles
-prep_combatant "Spaghetti"
+prep_combatant "Spaghetti" 
 prep_combatant "Sushi"
 get_combatants
 battle
 clear_combatants
 
 prep_combatant "Spaghetti"
-prep_combatant "Taco"
+prep_combatant "Dumpling"
 get_combatants
 battle
 clear_combatants
